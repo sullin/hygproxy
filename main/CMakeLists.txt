@@ -1,0 +1,17 @@
+idf_component_register(SRCS "main.c"
+							"io.c"
+							"cli.c"
+							"wifi.c"
+							"bt.c"
+							"poller.c"
+							"influx.c"
+							"http.c"
+							"conf.c"
+                    INCLUDE_DIRS ""
+                    EMBED_FILES
+							"http/conf.html"
+							"http/hdr.html"
+							"http/index.html"
+							"http/main.css"
+							"http/main.js"
+					)

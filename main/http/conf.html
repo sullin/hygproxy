@@ -1,0 +1,100 @@
+<div id="st" class="st-busy">Initializing</div>
+
+<fieldset id="fs" disabled>
+<br/><label for="ifx_host">Influx server:</label><input type="text" id="ifx_host"/>
+<br/><label for="ifx_db">Influx database:</label><input type="text" id="ifx_db"/>
+<br/><label for="ifx_pfx">Influx extra tags:</label><input type="text" id="ifx_pfx"/>
+<br/><label for="ifx_int">Influx interval (s):</label><input type="number" min="0" max="600" id="ifx_int"/>
+
+<table id="ifx_cli"><tr><th>ID</th><th>Name</th><th></th></table>
+
+<br/><input type="button" value="Apply" onclick="save()"/>
+</fieldset>
+
+<script type="text/javascript">
+	/*=======================================================================*/
+	/* INPUT TAG SERIALIZATION */
+	function input_ser(base) {
+		var a = {}, i;
+		ls = el(base).getElementsByTagName("input");
+		for (i=0; i<ls.length; i++) {
+			if (!ls[i].id) continue;
+			if (ls[i].type=="number")
+				a[ls[i].id] = parseInt(ls[i].value);
+			else if (ls[i].type=="checkbox")
+				a[ls[i].id] = ls[i].checked;
+			else if (ls[i].type=="color")
+				a[ls[i].id] = ls[i].value.substring(1);
+			else
+				a[ls[i].id] = ls[i].value;
+		}
+
+		var cli = [];
+		a["ifx_clients"] = cli;
+		e = el("ifx_cli");
+
+		for (i=0; i<e.rows.length; i++) {
+			ls = e.rows[i].getElementsByTagName("input");
+			if (ls.length != 2) continue;
+			var c = {}
+			c.addr = ls[0].value;
+			c.name = ls[1].value;
+			if (c.addr=="") continue;
+			cli.push(c);
+		}
+
+		return a;
+	}
+
+	function input_deser(a) {
+		var p, e;
+		for (p in a) {
+			e = el(p);
+			if (e != null) {
+				if (e.type=="checkbox")
+					e.checked = a[p];
+				else if (e.type=="color")
+					e.value = "#" + a[p];
+				else
+					e.value = a[p];
+			}
+		}
+
+		e = el("ifx_cli");
+		for (var i=0; i<8; i++) {
+			var name = "", addr = "";
+			if (a.ifx_clients && a.ifx_clients[i]) {
+				name = a.ifx_clients[i].name; addr = a.ifx_clients[i].addr;
+			}
+			e.innerHTML += '<tr><td><input value="'+addr+'"></td><td><input value="'+name+'"></td></tr>';
+		}
+	}
+
+	/*=======================================================================*/
+	/* SETTINGS LOAD/SAVE */
+	function conf_ld_resp(s) {
+		if (s === null) {
+			sts_err("Failed loading settings");
+			return;
+		}
+		input_deser(JSON.parse(s));
+		dis('fs', false);
+		sts_del();
+	}
+
+	function save_resp(r) {
+		if (!r) sts_err("Error saving settings!");
+		else sts_ok("Settings saved successfully!");
+	};
+
+	function save() {
+		bin_st("/api/conf.json", JSON.stringify(input_ser("fs")), save_resp);
+	}
+
+	function load() {
+		str_ld("/api/conf.json", conf_ld_resp);
+	}
+
+
+	load();
+</script>

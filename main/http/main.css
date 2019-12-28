@@ -1,0 +1,7 @@
+
+#st { }
+.st-ok { color: #008800; background: #dff0d8; border: 1px solid #b2dba1 }
+.st-warn { color: #ccaa00; background: #fcf8e3; border: 1px solid #f5e79e }
+.st-err { color: #880000; background: #f2dede; border: 1px solid #dca7a7 }
+.st-busy { color: #000088; background: #d9edf7; border: 1px solid #9acfea }
+
