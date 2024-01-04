@@ -28,6 +28,7 @@
 #include "esp_vfs_dev.h"
 #include "linenoise/linenoise.h"
 #include "driver/uart.h"
+#include "driver/uart_vfs.h"
 #include "wifi.h"
 #include "cli.h"
 
@@ -90,22 +91,23 @@ void cli_init()
 {
 	setvbuf(stdin, NULL, _IONBF, 0);
 
-	esp_vfs_dev_uart_set_rx_line_endings(ESP_LINE_ENDINGS_CR);
-	esp_vfs_dev_uart_set_tx_line_endings(ESP_LINE_ENDINGS_CRLF);
+	uart_vfs_dev_port_set_rx_line_endings(CONFIG_ESP_CONSOLE_UART_NUM, ESP_LINE_ENDINGS_CR);
+	uart_vfs_dev_port_set_tx_line_endings(CONFIG_ESP_CONSOLE_UART_NUM, ESP_LINE_ENDINGS_CRLF);
 
 	const uart_config_t uart_config = {
 			.baud_rate = CONFIG_ESP_CONSOLE_UART_BAUDRATE,
 			.data_bits = UART_DATA_8_BITS,
 			.parity = UART_PARITY_DISABLE,
 			.stop_bits = UART_STOP_BITS_1,
-			.use_ref_tick = true
+			.flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+			.source_clk = UART_SCLK_DEFAULT,
 	};
 	ESP_ERROR_CHECK( uart_param_config(CONFIG_ESP_CONSOLE_UART_NUM, &uart_config) );
 
 	ESP_ERROR_CHECK( uart_driver_install(CONFIG_ESP_CONSOLE_UART_NUM,
 			256, 0, 0, NULL, 0) );
 
-	esp_vfs_dev_uart_use_driver(CONFIG_ESP_CONSOLE_UART_NUM);
+	uart_vfs_dev_use_driver(CONFIG_ESP_CONSOLE_UART_NUM);
 
 	esp_console_config_t console_config = {
 			.max_cmdline_args = 8,

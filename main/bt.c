@@ -271,7 +271,12 @@ void bt_init() {
 	ESP_ERROR_CHECK(esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_DEFAULT, ESP_PWR_LVL_P9));
 	ESP_ERROR_CHECK(esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_ADV, ESP_PWR_LVL_P9));
 	ESP_ERROR_CHECK(esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_SCAN ,ESP_PWR_LVL_P9));
-	ESP_ERROR_CHECK(esp_bluedroid_init());
+
+	esp_bluedroid_config_t cfg = {
+		.ssp_en = 0, // legacy pairing
+	};
+
+	ESP_ERROR_CHECK(esp_bluedroid_init_with_cfg(&cfg));
 	ESP_ERROR_CHECK(esp_bluedroid_enable());
 	ESP_ERROR_CHECK(esp_ble_gap_register_callback(gap_cb));
 	ESP_ERROR_CHECK(esp_ble_gattc_register_callback(gattc_cb));

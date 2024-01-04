@@ -33,7 +33,7 @@ void led_set(int on) {
 
 void led_init() {
 	gpio_config_t io_conf;
-	io_conf.intr_type = GPIO_PIN_INTR_DISABLE;
+	io_conf.intr_type = GPIO_INTR_DISABLE;
 	io_conf.mode = GPIO_MODE_OUTPUT;
 	io_conf.pin_bit_mask = (1<<GPIO_PIN_LED);
 	io_conf.pull_down_en = 0;

@@ -22,6 +22,8 @@
 #include "esp_log.h"
 
 #include "esp_system.h"
+#include "esp_chip_info.h"
+#include "esp_flash.h"
 #include "argtable3/argtable3.h"
 #include "esp_vfs_fat.h"
 #include "nvs.h"
@@ -65,7 +67,10 @@ void app_main(void)
 
 	ESP_LOGI("MAIN", "silicon revision %d, ", chip_info.revision);
 
-	ESP_LOGI("MAIN", "%dMB %s flash\n", spi_flash_get_chip_size() / (1024 * 1024),
+
+	uint32_t size_flash_chip;
+	esp_flash_get_size(NULL, &size_flash_chip);
+	ESP_LOGI("MAIN", "%luMB %s flash\n", size_flash_chip / (1024 * 1024),
 			(chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
 
 	cli_run();

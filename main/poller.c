@@ -30,7 +30,7 @@
 #include "conf.h"
 #include "poller.h"
 
-static xTaskHandle s_vcs_task_hdl = NULL;
+static TaskHandle_t s_vcs_task_hdl = NULL;
 
 #define POLL_INTERVAL_MIN_S	30
 
