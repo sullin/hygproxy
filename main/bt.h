@@ -22,15 +22,12 @@
 #include "esp_bt_defs.h"
 
 void bt_init();
-const char* bt_request_hyg(esp_bd_addr_t addr);
 
-#define BT_SCAN_MAX_NAME	10
+void bt_results_clear();
+float bt_result_get_clear_t(int i);
+float bt_result_get_clear_h(int i);
 
-struct bt_scan_result {
-	esp_bd_addr_t addr;
-	char name[BT_SCAN_MAX_NAME];
-};
-
-int bt_scan(struct bt_scan_result *res, int len);
+float bt_result_get_t(int i);
+float bt_result_get_h(int i);
 
 #endif /* MAIN_BT_H_ */

@@ -1,4 +1,6 @@
 
+td {padding: 0 5px 0 5px}
+
 #st { }
 .st-ok { color: #008800; background: #dff0d8; border: 1px solid #b2dba1 }
 .st-warn { color: #ccaa00; background: #fcf8e3; border: 1px solid #f5e79e }

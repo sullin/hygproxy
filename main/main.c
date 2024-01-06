@@ -74,4 +74,5 @@ void app_main(void)
 			(chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
 
 	cli_run();
+
 }

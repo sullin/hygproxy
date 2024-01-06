@@ -102,6 +102,9 @@ static esp_err_t http_conf_handler(httpd_req_t *req)
 		char tmp[32];
 		snprintf(tmp, sizeof(tmp), "%012llx", conf.influx.clients[i].addr);
 		cJSON_AddStringToObject(cli, "addr", tmp);
+
+		cJSON_AddNumberToObject(cli, "t", bt_result_get_t(i));
+		cJSON_AddNumberToObject(cli, "h", bt_result_get_h(i));
 	}
 
 	const char *str = cJSON_Print(root);
@@ -110,7 +113,6 @@ static esp_err_t http_conf_handler(httpd_req_t *req)
 	cJSON_Delete(root);
 	return ESP_OK;
 }
-
 
 static cJSON* http_post_json(httpd_req_t *req) {
 	int total_len = req->content_len;
@@ -225,35 +227,9 @@ static esp_err_t http_conf_put(httpd_req_t *req) {
 		conf.influx.clients[i].addr = 0;
 	}
 
+	bt_results_clear();
 	conf_store();
 	httpd_resp_sendstr(req, "OK");
-	return ESP_OK;
-}
-
-static esp_err_t http_bt_scan_handler(httpd_req_t *req) {
-	httpd_resp_set_type(req, "text/plain");
-
-#define BT_SCAN_MAX_RES	30
-	struct bt_scan_result res[BT_SCAN_MAX_RES];
-	char buf[24*BT_SCAN_MAX_RES];
-	buf[0] = '\0';
-
-	int cnt = bt_scan(res, BT_SCAN_MAX_RES);
-
-	int i;
-	int p = 0;
-	for(i=0; i<cnt; i++) {
-		int ret = snprintf(buf+p,sizeof(buf)-p, "%02x%02x%02x%02x%02x%02x\t%s\n",
-				res[i].addr[0], res[i].addr[1], res[i].addr[2],
-				res[i].addr[3], res[i].addr[4], res[i].addr[5], res[i].name);
-		if (ret < 0 || ret >= sizeof(buf)-p) {
-			httpd_resp_send_err(req,  HTTPD_400_BAD_REQUEST, "buffer overflow");
-			return ESP_FAIL;
-		}
-		p += ret;
-	}
-
-	httpd_resp_sendstr(req, buf);
 	return ESP_OK;
 }
 
@@ -282,10 +258,6 @@ static const httpd_uri_t http_uris[] = {
 		.uri = "/api/conf.json",
 		.method = HTTP_PUT,
 		.handler = http_conf_put,
-	}, {
-		.uri = "/bt_scan",
-		.method = HTTP_GET,
-		.handler = http_bt_scan_handler,
 	}, {}
 };
 

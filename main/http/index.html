@@ -1,1 +1,61 @@
-Xiaomi bluetooth hygrometer to Influx server proxy
+<div id="st" class="st-busy">Initializing</div>
+
+<br/>Influx server: <span id="ifx_host"></span>
+<br/>Influx database: <span id="ifx_db"></span>
+<br/>Influx extra tags: <span id="ifx_pfx"></span>
+<br/>Influx interval (s): <span id="ifx_int"></span>
+<br/>
+<table id="t">
+<tr><th>MAC</th><th>Name</th><th>Temperature</th><th>Humidity</th></tr>
+</table>
+
+
+<script type="text/javascript">
+	var cur_data = {};
+
+	function add(adr,name) {
+		el("t").innerHTML += "<tr id=\"" + adr + "\"><td>" + adr + "</td><td>" + name + "</td><td></td><td></td></tr>";
+	}
+
+	function render(s) {
+		if (s === null) {
+			sts_err("Failed loading data");
+			return;
+		}
+		var data = JSON.parse(s);
+		for (i in data) {
+			e=el(i)
+			if (e) e.innerHTML=data[i];
+		}
+
+		for (i in data.ifx_clients) {
+			d = data.ifx_clients[i]
+			if (!d.addr) continue;
+			var e = el(d.addr);
+			if (e == null) {
+				add(d.addr, d.name);
+				e = el(d.addr);
+				if (e == null) continue;
+			}
+
+			if (d.t)
+				t = d.t.toFixed(1)
+			else
+				t = ""
+			e.cells[2].innerHTML = t;
+			if (d.h)
+				h = d.h.toFixed(1)
+			else
+				h = ""
+			e.cells[3].innerHTML = h;
+		}
+		sts_del();
+		setTimeout(upd, 1000);
+	}
+
+	function upd() {
+		str_ld("api/conf.json", render);
+	}
+	upd();
+
+</script>

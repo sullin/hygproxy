@@ -19,6 +19,7 @@
  */
 
 #include <string.h>
+#include <math.h>
 
 //#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include "esp_log.h"
@@ -86,6 +87,7 @@ static void influx_send(const char *buf) {
 
 void influx_report(esp_bd_addr_t sensor, const char *name, float temp, float hyg) {
 	char namebuf[32];
+	if (isnan(temp) && isnan(hyg)) return;
 	if (influx_escape(namebuf, sizeof(namebuf), name)) return;
 
 	const char* spacer = "";
@@ -93,11 +95,23 @@ void influx_report(esp_bd_addr_t sensor, const char *name, float temp, float hyg
 		spacer = ",";
 	}
 
-	snprintf(buf, sizeof(buf), "%s,type=bt,id=%02x%02x%02x%02x%02x%02x,name=%s%s%s temperature=%.1f,humidity=%.1f",
+	int len = snprintf(buf, sizeof(buf), "%s,type=bt,id=%02x%02x%02x%02x%02x%02x,name=%s%s%s ",
 			conf.influx.db,
 			sensor[0], sensor[1], sensor[2], sensor[3],
 			sensor[4], sensor[5],
-			name, spacer, conf.influx.pfx, temp, hyg);
+			name, spacer, conf.influx.pfx);
+	if (len >= sizeof(buf)) return;
+
+	const char *sep="";
+	if (!isnan(temp)) {
+		len += snprintf(buf+len, sizeof(buf)-len, "temperature=%.1f", temp);
+		if (len >= sizeof(buf)) return;
+		sep=",";
+	}
+	if (!isnan(temp)) {
+		len += snprintf(buf+len, sizeof(buf)-len, "%shumidity=%.1f", sep, hyg);
+		if (len >= sizeof(buf)) return;
+	}
 
 	influx_send(buf);
 }

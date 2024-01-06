@@ -44,7 +44,7 @@ static void int64_to_bdaddr(esp_bd_addr_t adr, uint64_t i) {
 }
 
 static void poller_task(void *arg) {
-	TickType_t xLastWakeTime;
+	TickType_t xLastWakeTime = xTaskGetTickCount();
 	while(1) {
 		if (conf.influx.interval_s < POLL_INTERVAL_MIN_S ||
 				conf.influx.db[0] == '\0' ||
@@ -54,32 +54,19 @@ static void poller_task(void *arg) {
 			continue;
 		}
 
+		uint32_t interval = conf.influx.interval_s * 1000 / portTICK_PERIOD_MS;
+		vTaskDelayUntil( &xLastWakeTime, interval);
+
 		int i;
 		for (i=0; i<CONF_MAX_IFX_CLIENTS; i++) {
 			const struct conf_influx_client *cli = &conf.influx.clients[i];
 			if (cli->addr == 0 || cli->name[0] == '\0') continue;
 			esp_bd_addr_t adr;
 			int64_to_bdaddr(adr, cli->addr);
-			ESP_LOGI("POLLER", "Request %d: %02x%02x%02x%02x%02x%02x", i,
-					adr[0], adr[1], adr[2], adr[3], adr[4], adr[5]);
-			const char *ret = bt_request_hyg(adr);
-			if (ret == NULL) {
-				ESP_LOGE("POLLER", " no result");
-			} else {
-				ESP_LOGI("POLLER", " result: %s", ret);
-
-				float t, h;
-				if (sscanf(ret, "T=%f H=%f", &t, &h) != 2) {
-					ESP_LOGE("POLLER", " malformed result");
-				} else {
-					influx_report(adr, cli->name, t, h);
-				}
-			}
+			float t = bt_result_get_clear_t(i);
+			float h = bt_result_get_clear_h(i);
+			influx_report(adr, cli->name, t, h);
 		}
-
-		if (conf.influx.interval_s < POLL_INTERVAL_MIN_S) continue;
-		uint32_t interval = conf.influx.interval_s * 1000 / portTICK_PERIOD_MS;
-		vTaskDelayUntil( &xLastWakeTime, interval);
 	}
 }
 
